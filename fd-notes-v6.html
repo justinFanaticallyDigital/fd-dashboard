@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FD Dashboard - Notes & Observations</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --fd-orange: #ff7e14;
+            --fd-orange-light: #fff7ed;
+            --fd-gray: #787878;
+            --fd-navy: #1a1aa6;
+            --fd-navy-light: #e0e0ff;
+            --bg-light: #f8fafc;
+            --border-color: #e2e8f0;
+            --success: #22c55e;
+            --success-light: #dcfce7;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --highlight: #fef08a;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-light);
+            color: #1e293b;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+        
+        /* Main Layout */
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        
+        /* Header */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .app-header h1 {
+            font-size: 1.5rem;
+            color: var(--fd-navy);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .client-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: white;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        /* Buttons */
+        .btn {
+            font-family: 'DM Sans', sans-serif;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        
+        .btn-primary { background: var(--fd-orange); color: white; }
+        .btn-primary:hover { background: #e06b00; }
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--border-color);
+            color: var(--fd-gray);
+        }
+        .btn-outline:hover { border-color: var(--fd-orange); color: var(--fd-orange); }
+        .btn-outline.active { background: var(--fd-navy); color: white; border-color: var(--fd-navy); }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+        .btn-icon {
+            padding: 0.35rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--fd-gray);
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .btn-icon:hover { background: var(--bg-light); color: var(--fd-orange); }
+        
+        /* Month Navigation */
+        .month-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .month-nav-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            padding: 0.35rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .month-nav-btn:hover { border-color: var(--fd-orange); color: var(--fd-orange); }
+        
+        .month-display {
+            font-weight: 600;
+            color: var(--fd-navy);
+            min-width: 140px;
+            text-align: center;
+        }
+        
+        .month-dots {
+            display: flex;
+            gap: 0.35rem;
+            margin-left: auto;
+        }
+        
+        .month-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border-color);
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+        
+        .month-dot.has-data { background: var(--fd-orange); }
+        .month-dot.current { box-shadow: 0 0 0 2px white, 0 0 0 4px var(--fd-navy); }
+        .month-dot:hover { transform: scale(1.3); }
+        .month-dot::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            white-space: nowrap;
+            background: var(--fd-navy);
+            color: white;
+            padding: 0.15rem 0.35rem;
+            border-radius: 3px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+            margin-bottom: 4px;
+        }
+        .month-dot:hover::after { opacity: 1; }
+        
+        .view-toggle {
+            display: flex;
+            gap: 0.25rem;
+            margin-left: 1rem;
+        }
+        
+        /* Notes Container */
+        .notes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        /* Note Card */
+        .note-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: box-shadow 0.15s;
+        }
+        
+        .note-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        
+        .note-card.is-followup { border-left: 4px solid var(--fd-orange); }
+        
+        .note-body {
+            padding: 0.75rem 1rem;
+        }
+        
+        /* Observations */
+        .observations-list {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* First observation (the "header") */
+        .observation-item.depth-0 {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.3rem 0;
+        }
+        
+        .observation-item.depth-0 .observation-content {
+            font-weight: 600;
+            font-size: 1rem;
+            flex: 1;
+        }
+        
+        /* Collapse toggle */
+        .collapse-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.2rem;
+            color: var(--fd-gray);
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .collapse-toggle:hover { color: var(--fd-orange); }
+        
+        .collapse-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        /* Note meta (shows follow-up badge when collapsed) */
+        .note-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--fd-gray);
+            flex-shrink: 0;
+        }
+        
+        .follow-up-indicator {
+            font-size: 0.7rem;
+            color: var(--fd-orange);
+            font-weight: 500;
+        }
+        
+        /* Nested observations */
+        .nested-observations {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+        }
+        
+        .nested-observations.collapsed {
+            max-height: 0 !important;
+            opacity: 0;
+        }
+        
+        .observation-item {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.3rem 0;
+        }
+        
+        .observation-connector {
+            color: #cbd5e1;
+            font-family: monospace;
+            font-size: 1rem;
+            line-height: 1.4;
+            user-select: none;
+            min-width: 16px;
+            text-align: center;
+        }
+        
+        .observation-content-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.35rem;
+            position: relative;
+        }
+        
+        .observation-content {
+            flex: 1;
+            color: #334155;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            cursor: text;
+            transition: background 0.15s;
+            min-height: 1.5em;
+            outline: none;
+        }
+        
+        .observation-content:hover { background: rgba(0,0,0,0.02); }
+        .observation-content:focus {
+            background: white;
+            box-shadow: 0 0 0 2px var(--fd-orange);
+        }
+        
+        .observation-content:empty::before {
+            content: attr(data-placeholder);
+            color: #94a3b8;
+        }
+        
+        /* Style variations */
+        .observation-content.style-highlighted {
+            background: var(--highlight);
+        }
+        
+        .observation-content.style-highlighted-bold {
+            background: var(--highlight);
+            font-weight: 700;
+        }
+        
+        .observation-content.style-highlighted:focus,
+        .observation-content.style-highlighted-bold:focus {
+            box-shadow: 0 0 0 2px var(--fd-orange);
+        }
+        
+        /* Style toggle button */
+        .style-toggle {
+            padding: 0.15rem 0.35rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: var(--fd-gray);
+            opacity: 0;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        
+        .observation-item:hover .style-toggle { opacity: 1; }
+        
+        .style-toggle:hover {
+            background: var(--bg-light);
+            border-color: var(--border-color);
+        }
+        
+        .style-toggle.active {
+            background: var(--highlight);
+            border-color: #eab308;
+            opacity: 1;
+        }
+        
+        /* Link button and input */
+        .obs-link-btn {
+            padding: 0.15rem 0.35rem;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: var(--fd-gray);
+            opacity: 0;
+            transition: all 0.15s;
+        }
+        
+        .observation-item:hover .obs-link-btn { opacity: 1; }
+        
+        .obs-link-btn:hover {
+            background: var(--bg-light);
+            border-color: var(--border-color);
+        }
+        
+        .obs-link-btn.has-link {
+            color: var(--fd-navy);
+            opacity: 1;
+        }
+        
+        .obs-link-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            font-size: 0.85rem;
+            color: var(--fd-navy);
+            text-decoration: none;
+            border-radius: 3px;
+            transition: all 0.15s;
+        }
+        
+        .obs-link-icon:hover {
+            background: var(--fd-navy-light);
+            color: var(--fd-navy);
+        }
+        
+        .link-input-wrapper {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            z-index: 50;
+            margin-top: 4px;
+        }
+        
+        .link-input-wrapper.show {
+            display: block;
+        }
+        
+        .link-input {
+            width: 280px;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            outline: none;
+        }
+        
+        .link-input:focus {
+            border-color: var(--fd-orange);
+        }
+        
+        /* Nesting indentation */
+        .observation-item.depth-1 { padding-left: 1.5rem; }
+        .observation-item.depth-2 { padding-left: 3rem; }
+        .observation-item.depth-3 { padding-left: 4.5rem; }
+        .observation-item.depth-4 { padding-left: 6rem; }
+        .observation-item.depth-5 { padding-left: 7.5rem; }
+        
+        /* New Note Input */
+        .new-note-container {
+            background: white;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            transition: all 0.15s;
+            margin-top: 1rem;
+        }
+        
+        .new-note-container:focus-within {
+            border-color: var(--fd-orange);
+            border-style: solid;
+        }
+        
+        .new-note-input {
+            width: 100%;
+            border: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #334155;
+            outline: none;
+            resize: none;
+            min-height: 1.5em;
+            background: transparent;
+        }
+        
+        .new-note-input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+        
+        .new-note-hint {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+        
+        /* Follow-up Popover */
+        .followup-popover {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 100;
+            display: none;
+            padding: 0.75rem;
+            min-width: 220px;
+            margin-bottom: 4px;
+        }
+        
+        .followup-popover.show { display: block; }
+        
+        .followup-popover label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--fd-gray);
+            margin-bottom: 0.25rem;
+        }
+        
+        .followup-popover select,
+        .followup-popover input {
+            width: 100%;
+            padding: 0.4rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 1000;
+        }
+        
+        .toast {
+            background: var(--fd-navy);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast.success { background: var(--success); }
+        .toast.warning { background: var(--warning); }
+        .toast.error { background: var(--danger); }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Confirm Dialog */
+        .dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        
+        .dialog-overlay.show { opacity: 1; pointer-events: auto; }
+        
+        .dialog {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .dialog h3 { margin-bottom: 0.5rem; color: var(--fd-navy); }
+        .dialog p { margin-bottom: 1rem; color: var(--fd-gray); }
+        .dialog-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+        
+        /* Empty State */
+        .empty-hint {
+            text-align: center;
+            padding: 2rem;
+            color: var(--fd-gray);
+        }
+        
+        .empty-hint-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        
+        /* Observation count badge when collapsed */
+        .obs-count {
+            font-size: 0.7rem;
+            color: var(--fd-gray);
+            background: var(--bg-light);
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            margin-left: 0.5rem;
+        }
+        
+        /* Note Footer */
+        .note-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 1rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-light);
+            gap: 1rem;
+            flex-wrap: wrap;
+            transition: all 0.2s ease;
+        }
+        
+        .note-footer.collapsed {
+            display: none;
+        }
+        
+        .footer-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--fd-gray);
+        }
+        
+        .footer-date {
+            color: var(--fd-gray);
+        }
+        
+        .footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+        
+        .follow-up-badge {
+            background: var(--fd-orange);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        
+        .follow-up-badge:hover { background: #e06b00; }
+        
+        .follow-up-badge-mini {
+            background: var(--fd-orange-light);
+            color: var(--fd-orange);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.65rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>📋 <span id="clientTitle">D. Wells Auto</span></h1>
+            <select class="client-select" id="clientSelect" onchange="switchClient()">
+                <option value="dwells">D. Wells Auto</option>
+                <option value="pumpbiz">Pumpbiz</option>
+                <option value="korpak">Kor-Pak</option>
+                <option value="uew">UEW Healthcare</option>
+                <option value="rieke">Rieke Interiors</option>
+            </select>
+            <div class="header-actions">
+                <button class="btn btn-outline btn-sm" onclick="addSampleData()">Add Sample Data</button>
+                <button class="btn btn-outline btn-sm" onclick="clearAllData()">Clear Data</button>
+            </div>
+        </header>
+        
+        <!-- Month Navigation -->
+        <div class="month-nav">
+            <button class="month-nav-btn" onclick="changeMonth(-1)">← Prev</button>
+            <span class="month-display" id="currentMonthDisplay">December 2024</span>
+            <button class="month-nav-btn" onclick="changeMonth(1)">Next →</button>
+            <div class="month-dots" id="monthDots"></div>
+            <div class="view-toggle">
+                <button class="btn btn-outline btn-sm active" data-view="1" onclick="setViewMode(1)">1M</button>
+                <button class="btn btn-outline btn-sm" data-view="3" onclick="setViewMode(3)">3M</button>
+            </div>
+        </div>
+        
+        <!-- Notes Container -->
+        <div class="notes-container" id="notesContainer">
+            <!-- Notes render here -->
+        </div>
+        
+        <!-- New Note Input (always at bottom) -->
+        <div class="new-note-container" id="newNoteContainer">
+            <input type="text" 
+                   class="new-note-input" 
+                   id="newNoteInput" 
+                   placeholder="New note..."
+                   onkeydown="handleNewNoteKeydown(event)">
+            <div class="new-note-hint">Press <strong>Enter</strong> to create note</div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Confirm Dialog -->
+    <div class="dialog-overlay" id="dialogOverlay">
+        <div class="dialog">
+            <h3 id="dialogTitle">Confirm</h3>
+            <p id="dialogMessage">Are you sure?</p>
+            <div class="dialog-actions">
+                <button class="btn btn-outline" onclick="closeDialog()">Cancel</button>
+                <button class="btn btn-primary" id="dialogConfirm" onclick="confirmDialog()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============================================
+    // DATA MODEL
+    // ============================================
+    
+    function generateId(prefix = 'id') {
+        return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
+    
+    function getMonthKey(date = new Date()) {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    }
+    
+    function parseMonthKey(monthKey) {
+        const [year, month] = monthKey.split('-').map(Number);
+        return { year, month };
+    }
+    
+    function monthKeyToLabel(monthKey) {
+        const { year, month } = parseMonthKey(monthKey);
+        const date = new Date(year, month - 1);
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
+    
+    function createObservation(content, style = 'normal', link = null) {
+        const now = new Date().toISOString();
+        return {
+            id: generateId('obs'),
+            content: content,
+            style: style,
+            link: link,
+            createdAt: now,
+            updatedAt: now
+        };
+    }
+    
+    function getNotesForMonth(clientData, targetMonth) {
+        if (!clientData || !clientData.notes) return [];
+        
+        const results = [];
+        for (const note of clientData.notes) {
+            if (note.monthCreated === targetMonth) {
+                results.push({ ...note, displayContext: 'created' });
+            } else if (note.followUpMonth === targetMonth) {
+                results.push({ ...note, displayContext: 'followUp', originalMonth: note.monthCreated });
+            }
+        }
+        
+        results.sort((a, b) => {
+            if (a.displayContext === 'followUp' && b.displayContext !== 'followUp') return -1;
+            if (b.displayContext === 'followUp' && a.displayContext !== 'followUp') return 1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+        
+        return results;
+    }
+    
+    function getMonthsWithData(clientData) {
+        if (!clientData || !clientData.notes) return new Set();
+        const months = new Set();
+        for (const note of clientData.notes) {
+            months.add(note.monthCreated);
+            if (note.followUpMonth) months.add(note.followUpMonth);
+        }
+        return months;
+    }
+    
+    // ============================================
+    // APP STATE
+    // ============================================
+    
+    let dashboardData = {};
+    let currentClientId = 'dwells';
+    let currentMonth = getMonthKey();
+    let viewMode = 1;
+    let dialogCallback = null;
+    let collapsedNotes = new Set(); // Track which notes are collapsed
+    
+    const clientNames = {
+        dwells: 'D. Wells Auto',
+        pumpbiz: 'Pumpbiz',
+        korpak: 'Kor-Pak',
+        uew: 'UEW Healthcare',
+        rieke: 'Rieke Interiors'
+    };
+    
+    const STYLE_CYCLE = ['normal', 'highlighted', 'highlighted-bold'];
+    
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        loadFromStorage();
+        updateMonthDisplay();
+        renderMonthDots();
+        renderNotes();
+    });
+    
+    // ============================================
+    // CLIENT & MONTH NAVIGATION
+    // ============================================
+    
+    function switchClient() {
+        currentClientId = document.getElementById('clientSelect').value;
+        document.getElementById('clientTitle').textContent = clientNames[currentClientId];
+        renderMonthDots();
+        renderNotes();
+    }
+    
+    function updateMonthDisplay() {
+        const { year, month } = parseMonthKey(currentMonth);
+        const date = new Date(year, month - 1);
+        document.getElementById('currentMonthDisplay').textContent = 
+            date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+    
+    function changeMonth(delta) {
+        const { year, month } = parseMonthKey(currentMonth);
+        const date = new Date(year, month - 1 + delta);
+        currentMonth = getMonthKey(date);
+        updateMonthDisplay();
+        renderMonthDots();
+        renderNotes();
+    }
+    
+    function goToMonth(monthKey) {
+        currentMonth = monthKey;
+        updateMonthDisplay();
+        renderMonthDots();
+        renderNotes();
+    }
+    
+    function renderMonthDots() {
+        const container = document.getElementById('monthDots');
+        const clientData = dashboardData[currentClientId];
+        const monthsWithData = getMonthsWithData(clientData);
+        
+        const dots = [];
+        const { year, month } = parseMonthKey(currentMonth);
+        
+        for (let i = -6; i <= 6; i++) {
+            const date = new Date(year, month - 1 + i);
+            const monthKey = getMonthKey(date);
+            const hasData = monthsWithData.has(monthKey);
+            const isCurrent = monthKey === currentMonth;
+            const label = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            
+            dots.push(`
+                <div class="month-dot ${hasData ? 'has-data' : ''} ${isCurrent ? 'current' : ''}"
+                     data-label="${label}"
+                     onclick="goToMonth('${monthKey}')"></div>
+            `);
+        }
+        
+        container.innerHTML = dots.join('');
+    }
+    
+    function setViewMode(mode) {
+        viewMode = mode;
+        document.querySelectorAll('.view-toggle .btn').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.view) === mode);
+        });
+        renderNotes();
+    }
+    
+    // ============================================
+    // CREATE NOTE (via Enter key)
+    // ============================================
+    
+    function handleNewNoteKeydown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const content = e.target.value.trim();
+            if (!content) return;
+            
+            if (!dashboardData[currentClientId]) {
+                dashboardData[currentClientId] = { notes: [] };
+            }
+            
+            const note = {
+                id: generateId('note'),
+                clientId: currentClientId,
+                monthCreated: currentMonth,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                createdBy: 'User',
+                followUpDate: null,
+                followUpMonth: null,
+                observations: [createObservation(content)]
+            };
+            
+            dashboardData[currentClientId].notes.push(note);
+            saveToStorage();
+            
+            e.target.value = '';
+            
+            renderMonthDots();
+            renderNotes();
+            
+            // Auto-add a new nested observation and focus it
+            setTimeout(() => {
+                addObservation(note.id, true);
+            }, 50);
+            
+            showToast('Note created!', 'success');
+        }
+    }
+    
+    // ============================================
+    // COLLAPSE/EXPAND
+    // ============================================
+    
+    function toggleCollapse(noteId) {
+        if (collapsedNotes.has(noteId)) {
+            collapsedNotes.delete(noteId);
+        } else {
+            collapsedNotes.add(noteId);
+        }
+        renderNotes();
+    }
+    
+    // ============================================
+    // RENDER NOTES
+    // ============================================
+    
+    function renderNotes() {
+        const container = document.getElementById('notesContainer');
+        const clientData = dashboardData[currentClientId];
+        
+        let allNotes = [];
+        
+        if (viewMode === 1) {
+            allNotes = getNotesForMonth(clientData, currentMonth);
+        } else {
+            const { year, month } = parseMonthKey(currentMonth);
+            for (let i = -1; i <= 1; i++) {
+                const date = new Date(year, month - 1 + i);
+                const monthKey = getMonthKey(date);
+                const notes = getNotesForMonth(clientData, monthKey);
+                notes.forEach(n => n.viewMonth = monthKey);
+                allNotes.push(...notes);
+            }
+        }
+        
+        if (allNotes.length === 0) {
+            container.innerHTML = `
+                <div class="empty-hint">
+                    <div class="empty-hint-icon">📝</div>
+                    <p>No notes for this ${viewMode === 1 ? 'month' : 'period'} yet.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = allNotes.map(note => renderNoteCard(note)).join('');
+        initializeObservationEditing();
+    }
+    
+    function renderNoteCard(note) {
+        const isFollowUp = note.displayContext === 'followUp';
+        const isCollapsed = collapsedNotes.has(note.id);
+        const firstObs = note.observations[0];
+        const nestedObs = note.observations.slice(1);
+        const nestedCount = nestedObs.length;
+        
+        const firstObsStyleClass = firstObs.style && firstObs.style !== 'normal' ? `style-${firstObs.style}` : '';
+        const isFirstHighlighted = firstObs.style === 'highlighted' || firstObs.style === 'highlighted-bold';
+        const firstHasLink = firstObs.link && firstObs.link.trim() !== '';
+        
+        return `
+            <div class="note-card ${isFollowUp ? 'is-followup' : ''}" data-note-id="${note.id}">
+                <div class="note-body">
+                    <div class="observations-list">
+                        <!-- First observation (the header) -->
+                        <div class="observation-item depth-0" data-obs-id="${firstObs.id}">
+                            <button class="collapse-toggle ${isCollapsed ? 'collapsed' : ''}" 
+                                    onclick="toggleCollapse('${note.id}')" 
+                                    title="${isCollapsed ? 'Expand' : 'Collapse'}">
+                                ▼
+                            </button>
+                            <div class="observation-content-wrapper">
+                                <div class="observation-content ${firstObsStyleClass}" 
+                                     contenteditable="true" 
+                                     data-note-id="${note.id}"
+                                     data-obs-id="${firstObs.id}"
+                                     data-placeholder="New note...">${firstObs.content}</div>
+                                <button class="style-toggle ${isFirstHighlighted ? 'active' : ''}" 
+                                        onclick="cycleStyle('${note.id}', '${firstObs.id}')" 
+                                        title="Toggle highlight">
+                                    ${getStyleIcon(firstObs.style)}
+                                </button>
+                                ${firstHasLink ? `
+                                    <a href="${firstObs.link}" target="_blank" rel="noopener noreferrer" class="obs-link-icon has-link" title="${firstObs.link}">↗</a>
+                                ` : ''}
+                                <button class="obs-link-btn ${firstHasLink ? 'has-link' : ''}" 
+                                        onclick="toggleLinkInput('${note.id}', '${firstObs.id}')" 
+                                        title="${firstHasLink ? 'Edit link' : 'Add link'}">
+                                    🔗
+                                </button>
+                                <div class="link-input-wrapper" id="link-input-${firstObs.id}">
+                                    <input type="url" 
+                                           class="link-input" 
+                                           placeholder="https://..."
+                                           value="${firstObs.link || ''}"
+                                           onkeydown="handleLinkKeydown(event, '${note.id}', '${firstObs.id}')"
+                                           onblur="saveLinkOnBlur(event, '${note.id}', '${firstObs.id}')">
+                                </div>
+                                ${isCollapsed && nestedCount > 0 ? `<span class="obs-count">+${nestedCount}</span>` : ''}
+                            </div>
+                            
+                            ${isFollowUp ? `<span class="follow-up-indicator">📌 ${monthKeyToLabel(note.originalMonth)}</span>` : ''}
+                            
+                            <div class="note-meta">
+                                ${note.followUpMonth && isCollapsed ? `
+                                    <span class="follow-up-badge-mini">📅 ${monthKeyToLabel(note.followUpMonth)}</span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- Nested observations (collapsible) -->
+                        <div class="nested-observations ${isCollapsed ? 'collapsed' : ''}" id="nested-${note.id}">
+                            ${nestedObs.map((obs, idx) => renderObservation(note.id, obs, idx + 1)).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Footer (visible when expanded) -->
+                    <div class="note-footer ${isCollapsed ? 'collapsed' : ''}">
+                        <div class="footer-meta">
+                            <span class="footer-date">${new Date(note.createdAt).toLocaleDateString()}</span>
+                            ${note.followUpMonth ? `
+                                <span class="follow-up-badge" onclick="toggleFollowUpPopover('${note.id}')">
+                                    📅 Follow-up: ${monthKeyToLabel(note.followUpMonth)}
+                                </span>
+                            ` : ''}
+                        </div>
+                        <div class="footer-actions">
+                            <button class="btn btn-sm btn-outline" onclick="toggleFollowUpPopover('${note.id}')">
+                                📅 ${note.followUpMonth ? 'Edit' : 'Set'} Follow-up
+                            </button>
+                            <button class="btn btn-sm btn-outline" onclick="confirmDeleteNote('${note.id}')" style="color: var(--danger);">
+                                🗑️ Delete
+                            </button>
+                            
+                            <div class="followup-popover" id="followup-popover-${note.id}">
+                                <label>Follow-up Month</label>
+                                <select id="followup-month-${note.id}" onchange="updateFollowUp('${note.id}')">
+                                    <option value="">None</option>
+                                    ${generateMonthOptions(note.followUpMonth)}
+                                </select>
+                                <label>Specific Date (optional)</label>
+                                <input type="date" id="followup-date-${note.id}" value="${note.followUpDate || ''}" onchange="updateFollowUp('${note.id}')">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderObservation(noteId, obs, depth) {
+        const styleClass = obs.style && obs.style !== 'normal' ? `style-${obs.style}` : '';
+        const isHighlighted = obs.style === 'highlighted' || obs.style === 'highlighted-bold';
+        const hasLink = obs.link && obs.link.trim() !== '';
+        
+        return `
+            <div class="observation-item depth-${depth}" data-obs-id="${obs.id}">
+                <span class="observation-connector">└</span>
+                <div class="observation-content-wrapper">
+                    <div class="observation-content ${styleClass}" 
+                         contenteditable="true" 
+                         data-note-id="${noteId}"
+                         data-obs-id="${obs.id}"
+                         data-placeholder="Add observation...">${obs.content}</div>
+                    <button class="style-toggle ${isHighlighted ? 'active' : ''}" 
+                            onclick="cycleStyle('${noteId}', '${obs.id}')" 
+                            title="Toggle highlight">
+                        ${getStyleIcon(obs.style)}
+                    </button>
+                    ${hasLink ? `
+                        <a href="${obs.link}" target="_blank" rel="noopener noreferrer" class="obs-link-icon has-link" title="${obs.link}">↗</a>
+                    ` : ''}
+                    <button class="obs-link-btn ${hasLink ? 'has-link' : ''}" 
+                            onclick="toggleLinkInput('${noteId}', '${obs.id}')" 
+                            title="${hasLink ? 'Edit link' : 'Add link'}">
+                        🔗
+                    </button>
+                    <div class="link-input-wrapper" id="link-input-${obs.id}">
+                        <input type="url" 
+                               class="link-input" 
+                               placeholder="https://..."
+                               value="${obs.link || ''}"
+                               onkeydown="handleLinkKeydown(event, '${noteId}', '${obs.id}')"
+                               onblur="saveLinkOnBlur(event, '${noteId}', '${obs.id}')">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function getStyleIcon(style) {
+        switch(style) {
+            case 'highlighted': return '🖍️';
+            case 'highlighted-bold': return '🖍️B';
+            default: return '○';
+        }
+    }
+    
+    function initializeObservationEditing() {
+        document.querySelectorAll('.observation-content[contenteditable]').forEach(el => {
+            el.addEventListener('blur', (e) => handleObservationBlur(e.target));
+            el.addEventListener('keydown', (e) => handleObservationKeydown(e));
+        });
+    }
+    
+    function handleObservationKeydown(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const noteId = e.target.dataset.noteId;
+            const obsId = e.target.dataset.obsId;
+            const content = e.target.innerText.trim();
+            
+            saveObservationContent(noteId, obsId, content);
+            
+            if (content) {
+                addObservation(noteId, true);
+            }
+        }
+    }
+    
+    function handleObservationBlur(el) {
+        const noteId = el.dataset.noteId;
+        const obsId = el.dataset.obsId;
+        const content = el.innerText.trim();
+        
+        const note = findNote(noteId);
+        if (note) {
+            // If empty and more than one observation, remove it (but not the first one)
+            const obsIndex = note.observations.findIndex(o => o.id === obsId);
+            if (!content && note.observations.length > 1 && obsIndex > 0) {
+                note.observations = note.observations.filter(o => o.id !== obsId);
+                note.updatedAt = new Date().toISOString();
+                saveToStorage();
+                renderNotes();
+                return;
+            }
+        }
+        
+        saveObservationContent(noteId, obsId, content);
+    }
+    
+    function saveObservationContent(noteId, obsId, content) {
+        const note = findNote(noteId);
+        if (note) {
+            const obs = note.observations.find(o => o.id === obsId);
+            if (obs && obs.content !== content) {
+                obs.content = content;
+                obs.updatedAt = new Date().toISOString();
+                note.updatedAt = new Date().toISOString();
+                saveToStorage();
+            }
+        }
+    }
+    
+    // ============================================
+    // STYLE CYCLING
+    // ============================================
+    
+    function cycleStyle(noteId, obsId) {
+        const note = findNote(noteId);
+        if (note) {
+            const obs = note.observations.find(o => o.id === obsId);
+            if (obs) {
+                const currentIndex = STYLE_CYCLE.indexOf(obs.style || 'normal');
+                const nextIndex = (currentIndex + 1) % STYLE_CYCLE.length;
+                obs.style = STYLE_CYCLE[nextIndex];
+                obs.updatedAt = new Date().toISOString();
+                note.updatedAt = new Date().toISOString();
+                saveToStorage();
+                renderNotes();
+            }
+        }
+    }
+    
+    // ============================================
+    // NOTE ACTIONS
+    // ============================================
+    
+    function toggleFollowUpPopover(noteId) {
+        closeAllPopups();
+        const popover = document.getElementById(`followup-popover-${noteId}`);
+        popover.classList.toggle('show');
+    }
+    
+    function updateFollowUp(noteId) {
+        const note = findNote(noteId);
+        if (note) {
+            const monthSelect = document.getElementById(`followup-month-${noteId}`);
+            const dateInput = document.getElementById(`followup-date-${noteId}`);
+            
+            note.followUpMonth = monthSelect.value || null;
+            note.followUpDate = dateInput.value || null;
+            note.updatedAt = new Date().toISOString();
+            
+            saveToStorage();
+            renderMonthDots();
+            renderNotes();
+            showToast(note.followUpMonth ? 'Follow-up set' : 'Follow-up cleared', 'success');
+        }
+    }
+    
+    function confirmDeleteNote(noteId) {
+        showDialog('Delete Note', 'Delete this note and all its observations?', () => {
+            const clientData = dashboardData[currentClientId];
+            if (clientData && clientData.notes) {
+                clientData.notes = clientData.notes.filter(n => n.id !== noteId);
+                collapsedNotes.delete(noteId);
+                saveToStorage();
+                renderMonthDots();
+                renderNotes();
+                showToast('Note deleted', 'success');
+            }
+        });
+    }
+    
+    function closeAllPopups() {
+        document.querySelectorAll('.followup-popover').forEach(el => {
+            el.classList.remove('show');
+        });
+    }
+    
+    // ============================================
+    // LINK MANAGEMENT
+    // ============================================
+    
+    function toggleLinkInput(noteId, obsId) {
+        // Close any other open link inputs
+        document.querySelectorAll('.link-input-wrapper.show').forEach(el => {
+            el.classList.remove('show');
+        });
+        
+        const wrapper = document.getElementById(`link-input-${obsId}`);
+        wrapper.classList.toggle('show');
+        
+        if (wrapper.classList.contains('show')) {
+            const input = wrapper.querySelector('.link-input');
+            input.focus();
+            input.select();
+        }
+    }
+    
+    function handleLinkKeydown(e, noteId, obsId) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveLink(noteId, obsId, e.target.value);
+            closeLinkInput(obsId);
+        } else if (e.key === 'Escape') {
+            closeLinkInput(obsId);
+        }
+    }
+    
+    function saveLinkOnBlur(e, noteId, obsId) {
+        // Small delay to allow for click events on other elements
+        setTimeout(() => {
+            const wrapper = document.getElementById(`link-input-${obsId}`);
+            if (wrapper && wrapper.classList.contains('show')) {
+                saveLink(noteId, obsId, e.target.value);
+                closeLinkInput(obsId);
+            }
+        }, 150);
+    }
+    
+    function saveLink(noteId, obsId, url) {
+        const note = findNote(noteId);
+        if (note) {
+            const obs = note.observations.find(o => o.id === obsId);
+            if (obs) {
+                const trimmedUrl = url.trim();
+                obs.link = trimmedUrl || null;
+                obs.updatedAt = new Date().toISOString();
+                note.updatedAt = new Date().toISOString();
+                saveToStorage();
+                renderNotes();
+                if (trimmedUrl) {
+                    showToast('Link saved', 'success');
+                }
+            }
+        }
+    }
+    
+    function closeLinkInput(obsId) {
+        const wrapper = document.getElementById(`link-input-${obsId}`);
+        if (wrapper) {
+            wrapper.classList.remove('show');
+        }
+    }
+    
+    // ============================================
+    // OBSERVATION ACTIONS
+    // ============================================
+    
+    function addObservation(noteId, autoFocus = false) {
+        const note = findNote(noteId);
+        if (note) {
+            // Make sure note is expanded when adding
+            collapsedNotes.delete(noteId);
+            
+            const newObs = createObservation('');
+            note.observations.push(newObs);
+            note.updatedAt = new Date().toISOString();
+            saveToStorage();
+            renderNotes();
+            
+            if (autoFocus) {
+                setTimeout(() => {
+                    const el = document.querySelector(`[data-obs-id="${newObs.id}"] .observation-content`);
+                    if (el) el.focus();
+                }, 50);
+            }
+        }
+    }
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    function findNote(noteId) {
+        const clientData = dashboardData[currentClientId];
+        if (!clientData || !clientData.notes) return null;
+        return clientData.notes.find(n => n.id === noteId);
+    }
+    
+    function generateMonthOptions(selectedMonth) {
+        const current = new Date();
+        let html = '';
+        for (let i = 0; i < 12; i++) {
+            const date = new Date(current.getFullYear(), current.getMonth() + i, 1);
+            const monthKey = getMonthKey(date);
+            const label = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            html += `<option value="${monthKey}" ${monthKey === selectedMonth ? 'selected' : ''}>${label}</option>`;
+        }
+        return html;
+    }
+    
+    // ============================================
+    // STORAGE
+    // ============================================
+    
+    function saveToStorage() {
+        try {
+            localStorage.setItem('fdNotesDemo', JSON.stringify(dashboardData));
+        } catch (e) {
+            console.warn('Could not save:', e);
+        }
+    }
+    
+    function loadFromStorage() {
+        try {
+            const saved = localStorage.getItem('fdNotesDemo');
+            if (saved) dashboardData = JSON.parse(saved);
+        } catch (e) {
+            console.warn('Could not load:', e);
+        }
+    }
+    
+    function clearAllData() {
+        showDialog('Clear All Data', 'This will delete all notes for all clients. Continue?', () => {
+            dashboardData = {};
+            collapsedNotes.clear();
+            localStorage.removeItem('fdNotesDemo');
+            renderMonthDots();
+            renderNotes();
+            showToast('All data cleared', 'success');
+        });
+    }
+    
+    // ============================================
+    // SAMPLE DATA
+    // ============================================
+    
+    function addSampleData() {
+        if (!dashboardData[currentClientId]) {
+            dashboardData[currentClientId] = { notes: [] };
+        }
+        
+        const now = new Date();
+        const thisMonth = getMonthKey(now);
+        const lastMonth = getMonthKey(new Date(now.getFullYear(), now.getMonth() - 1));
+        const nextMonth = getMonthKey(new Date(now.getFullYear(), now.getMonth() + 1));
+        
+        const sampleNotes = [
+            {
+                id: generateId('note'),
+                clientId: currentClientId,
+                monthCreated: thisMonth,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                createdBy: 'Justin',
+                followUpMonth: null,
+                followUpDate: null,
+                observations: [
+                    { id: generateId('obs'), content: 'Organic traffic up 15% month-over-month', style: 'normal', link: 'https://analytics.google.com', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                    { id: generateId('obs'), content: 'Product pages showing strongest growth', style: 'highlighted', link: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                    { id: generateId('obs'), content: 'Top performer: /industrial-pumps (2,400 sessions)', style: 'normal', link: 'https://analytics.google.com/report/pages', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+                ]
+            },
+            {
+                id: generateId('note'),
+                clientId: currentClientId,
+                monthCreated: thisMonth,
+                createdAt: new Date(Date.now() - 86400000).toISOString(),
+                updatedAt: new Date().toISOString(),
+                createdBy: 'Justin',
+                followUpMonth: nextMonth,
+                followUpDate: null,
+                observations: [
+                    { id: generateId('obs'), content: 'Core Web Vitals failing on mobile - LCP at 4.2s', style: 'highlighted-bold', link: 'https://pagespeed.web.dev', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                    { id: generateId('obs'), content: 'Main culprit: unoptimized hero images', style: 'normal', link: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                    { id: generateId('obs'), content: 'Recommendation: lazy loading + WebP format', style: 'highlighted', link: 'https://web.dev/lazy-loading', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+                ]
+            },
+            {
+                id: generateId('note'),
+                clientId: currentClientId,
+                monthCreated: lastMonth,
+                createdAt: new Date(now.getFullYear(), now.getMonth() - 1, 15).toISOString(),
+                updatedAt: new Date().toISOString(),
+                createdBy: 'Justin',
+                followUpMonth: thisMonth,
+                followUpDate: null,
+                observations: [
+                    { id: generateId('obs'), content: 'Meta descriptions need updating on category pages', style: 'normal', link: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                    { id: generateId('obs'), content: 'Progress: 12 of 24 pages completed', style: 'normal', link: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+                ]
+            }
+        ];
+        
+        dashboardData[currentClientId].notes.push(...sampleNotes);
+        saveToStorage();
+        renderMonthDots();
+        renderNotes();
+        showToast('Sample data added!', 'success');
+    }
+    
+    // ============================================
+    // UI UTILITIES
+    // ============================================
+    
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    function showDialog(title, message, onConfirm) {
+        document.getElementById('dialogTitle').textContent = title;
+        document.getElementById('dialogMessage').textContent = message;
+        document.getElementById('dialogOverlay').classList.add('show');
+        dialogCallback = onConfirm;
+    }
+    
+    function closeDialog() {
+        document.getElementById('dialogOverlay').classList.remove('show');
+        dialogCallback = null;
+    }
+    
+    function confirmDialog() {
+        if (dialogCallback) dialogCallback();
+        closeDialog();
+    }
+    
+    // Close popups when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.footer-actions')) {
+            closeAllPopups();
+        }
+        // Close link inputs when clicking outside
+        if (!e.target.closest('.obs-link-btn') && !e.target.closest('.link-input-wrapper')) {
+            document.querySelectorAll('.link-input-wrapper.show').forEach(el => {
+                el.classList.remove('show');
+            });
+        }
+    });
+    </script>
+</body>
+</html>
